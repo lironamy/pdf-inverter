@@ -42,14 +42,16 @@ class TruePDFColorInverter:
     pixel level, and reconstructs a new PDF with the inverted content.
     """
     
-    def __init__(self, dpi=300):
+    def __init__(self, dpi=300, optimize_large_files=False):
         """
         Initialize the inverter.
         
         Args:
             dpi (int): Resolution for PDF to image conversion (higher = better quality)
+            optimize_large_files (bool): Whether to optimize for large files (lower DPI)
         """
         self.dpi = dpi
+        self.optimize_large_files = optimize_large_files
         self.temp_dir = Path("temp_images")
         self.temp_dir.mkdir(exist_ok=True)
     
@@ -233,6 +235,13 @@ class TruePDFColorInverter:
         try:
             print(f"Starting true color inversion for: {input_path}")
             print(f"Output will be saved to: {output_path}")
+            
+            # Check file size and adjust DPI for large files
+            file_size = os.path.getsize(input_path)
+            if file_size > 10 * 1024 * 1024:  # 10MB
+                print(f"Large file detected ({file_size / (1024*1024):.1f}MB), optimizing DPI...")
+                self.dpi = 200  # Reduce DPI for large files
+                print(f"Reduced DPI to {self.dpi} for better performance")
             
             # Step 1: Convert PDF to images
             images = self.pdf_to_images(input_path)

@@ -14,9 +14,9 @@ const nextConfig = {
   },
   api: {
     bodyParser: {
-      sizeLimit: '50mb',
+      sizeLimit: '15mb',
     },
-    responseLimit: '50mb',
+    responseLimit: '15mb',
   },
 }
 

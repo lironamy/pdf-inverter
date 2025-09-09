@@ -8,7 +8,7 @@ import os from "os"
 
 const execAsync = promisify(exec)
 
-const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB (Vercel limit)
+const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15MB (increased limit)
 const ALLOWED_MIME_TYPES = ["application/pdf"]
 
 // Function to sanitize filename for safe use in headers
@@ -40,7 +40,9 @@ async function processPDFWithPython(
     
     // Run Python script with the new improved version
     const pythonScript = path.join(process.cwd(), 'pdf_inverter.py')
-    const command = `python "${pythonScript}" "${inputPath}" "${outputPath}" --dpi 300 --mode ${mode}`
+    const isLargeFile = inputBuffer.byteLength > 10 * 1024 * 1024 // 10MB
+    const dpi = isLargeFile ? 200 : 300 // Lower DPI for large files
+    const command = `python "${pythonScript}" "${inputPath}" "${outputPath}" --dpi ${dpi} --mode ${mode}`
     
     const { stdout, stderr } = await execAsync(command)
     

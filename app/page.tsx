@@ -98,9 +98,9 @@ export default function PDFInverterPage() {
     if (!file) return
 
     // Check file size before processing
-    const maxSize = 4 * 1024 * 1024 // 4MB
+    const maxSize = 15 * 1024 * 1024 // 15MB
     if (file.size > maxSize) {
-      setError(`הקובץ גדול מדי (${formatFileSize(file.size)}). אנא בחר קובץ קטן מ-4MB`)
+      setError(`הקובץ גדול מדי (${formatFileSize(file.size)}). אנא בחר קובץ קטן מ-15MB או נסה לחלק את ה-PDF לדפים נפרדים`)
       return
     }
 
@@ -137,7 +137,7 @@ export default function PDFInverterPage() {
 
       if (!response.ok) {
         if (response.status === 413) {
-          throw new Error("הקובץ גדול מדי. אנא בחר קובץ קטן מ-4MB")
+          throw new Error("הקובץ גדול מדי. אנא בחר קובץ קטן מ-15MB")
         }
         
         let errorData
@@ -228,7 +228,10 @@ export default function PDFInverterPage() {
               💡 <strong>טיפ:</strong> בדיפלוי האפליקציה עובדת במצב JavaScript (עדיין יעיל מאוד!)
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-400 text-center mt-1">
-              📏 מגבלת גודל: 4MB (מגבלת Vercel)
+              📏 מגבלת גודל: 15MB (מורחב)
+            </p>
+            <p className="text-xs text-blue-500 dark:text-blue-500 text-center mt-1">
+              💡 לקבצים גדולים: נסה לחלק את ה-PDF לדפים נפרדים
             </p>
           </div>
         </div>
@@ -246,7 +249,7 @@ export default function PDFInverterPage() {
               <Upload className="h-5 w-5" />
 העלאת מסמך PDF
             </CardTitle>
-            <CardDescription>בחר קובץ PDF או גרור ושחרר אותו כאן. גודל קובץ מקסימלי: 4MB</CardDescription>
+            <CardDescription>בחר קובץ PDF או גרור ושחרר אותו כאן. גודל קובץ מקסימלי: 15MB</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
