@@ -1,17 +1,11 @@
 {
-  "functions": {
-    "app/api/process-pdf/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
   "regions": ["iad1"],
   "env": {
     "NODE_ENV": "production"
   },
   "builds": [
     {
-      "src": "pdf_inverter.py",
+      "src": "api/python-process.py",
       "use": "@vercel/python"
     }
   ],
