@@ -8,7 +8,7 @@ import os from "os"
 
 const execAsync = promisify(exec)
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB (Vercel limit)
 const ALLOWED_MIME_TYPES = ["application/pdf"]
 
 // Function to sanitize filename for safe use in headers

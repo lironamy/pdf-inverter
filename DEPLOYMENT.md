@@ -33,9 +33,10 @@ This app is optimized for Vercel deployment. Here's what you need to know:
 
 ### File Size Limits
 
-- **Maximum**: 50MB per file
-- **Recommended**: Under 20MB for best performance
+- **Maximum**: 4MB per file (Vercel limitation)
+- **Recommended**: Under 2MB for best performance
 - **Error Handling**: Clear messages for oversized files
+- **Client-side validation**: Checks file size before upload
 
 ### Troubleshooting
 
