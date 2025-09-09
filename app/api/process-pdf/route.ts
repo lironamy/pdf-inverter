@@ -7,6 +7,12 @@ import os from "os"
 
 const execAsync = promisify(exec)
 
+// Configuration for Vercel App Router
+export const config = {
+  maxDuration: 60,
+  runtime: 'nodejs',
+}
+
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15MB (increased limit)
 const ALLOWED_MIME_TYPES = ["application/pdf"]
 
@@ -23,39 +29,8 @@ function sanitizeFilename(filename: string): string {
     || 'processed_pdf' // Fallback if filename becomes empty
 }
 
-// Function to process PDF using Vercel Python function
-async function processPDFWithVercelPython(
-  inputBuffer: ArrayBuffer, 
-  mode: string
-): Promise<{ success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string }> {
-  try {
-    const formData = new FormData()
-    const blob = new Blob([inputBuffer], { type: 'application/pdf' })
-    formData.append('pdf', blob, 'input.pdf')
-    formData.append('mode', mode)
-
-    const response = await fetch('/api/python-process', {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new Error(`Python function failed: ${response.status}`)
-    }
-
-    const outputBuffer = await response.arrayBuffer()
-    return { success: true, outputBuffer: Buffer.from(outputBuffer) }
-  } catch (error) {
-    console.error('Vercel Python processing error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown Vercel Python processing error' 
-    }
-  }
-}
-
-// Function to process PDF using Python script
-async function processPDFWithPython(
+// Function to process PDF using Python via subprocess
+async function processPDFWithPythonSubprocess(
   inputBuffer: ArrayBuffer, 
   mode: string
 ): Promise<{ success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string }> {
@@ -68,7 +43,7 @@ async function processPDFWithPython(
     // Write input buffer to temporary file
     await fs.writeFile(inputPath, Buffer.from(inputBuffer))
     
-    // Run Python script with the new improved version
+    // Run Python script directly
     const pythonScript = path.join(process.cwd(), 'pdf_inverter.py')
     const isLargeFile = inputBuffer.byteLength > 10 * 1024 * 1024 // 10MB
     const dpi = isLargeFile ? 200 : 300 // Lower DPI for large files
@@ -87,20 +62,21 @@ async function processPDFWithPython(
     await fs.unlink(inputPath).catch(() => {})
     await fs.unlink(outputPath).catch(() => {})
     
-    // Extract page count from stdout - new script format
+    // Extract page count from stdout
     const pageCountMatch = stdout.match(/Converted (\d+) pages to images/)
     const pageCount = pageCountMatch ? parseInt(pageCountMatch[1]) : 0
     
     return { success: true, outputBuffer, pageCount }
     
   } catch (error) {
-    console.error('Python processing error:', error)
+    console.error('Python subprocess error:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown Python processing error' 
+      error: error instanceof Error ? error.message : 'Unknown Python subprocess error' 
     }
   }
 }
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,13 +119,8 @@ export async function POST(request: NextRequest) {
     let pythonResult: { success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string }
     
     try {
-      if (isServerless) {
-        // Use Vercel Python function
-        pythonResult = await processPDFWithVercelPython(pdfBytes, mode)
-      } else {
-        // Use local Python script
-        pythonResult = await processPDFWithPython(pdfBytes, mode)
-      }
+      // Use Python subprocess (works in both local and serverless)
+      pythonResult = await processPDFWithPythonSubprocess(pdfBytes, mode)
     } catch (pythonError) {
       console.error("Python processing failed:", pythonError)
       return NextResponse.json(

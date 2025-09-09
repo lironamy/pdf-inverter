@@ -3,12 +3,6 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "builds": [
-    {
-      "src": "api/python-process.py",
-      "use": "@vercel/python"
-    }
-  ],
   "headers": [
     {
       "source": "/api/process-pdf",
