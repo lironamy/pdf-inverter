@@ -24,6 +24,37 @@ function sanitizeFilename(filename: string): string {
     || 'processed_pdf' // Fallback if filename becomes empty
 }
 
+// Function to process PDF using Vercel Python function
+async function processPDFWithVercelPython(
+  inputBuffer: ArrayBuffer, 
+  mode: string
+): Promise<{ success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string }> {
+  try {
+    const formData = new FormData()
+    const blob = new Blob([inputBuffer], { type: 'application/pdf' })
+    formData.append('pdf', blob, 'input.pdf')
+    formData.append('mode', mode)
+
+    const response = await fetch('/api/python-process', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error(`Python function failed: ${response.status}`)
+    }
+
+    const outputBuffer = await response.arrayBuffer()
+    return { success: true, outputBuffer: Buffer.from(outputBuffer) }
+  } catch (error) {
+    console.error('Vercel Python processing error:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown Vercel Python processing error' 
+    }
+  }
+}
+
 // Function to process PDF using Python script
 async function processPDFWithPython(
   inputBuffer: ArrayBuffer, 
@@ -115,14 +146,24 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now()
 
-    // Try Python processing first for true color inversion (only if not in serverless)
+    // Try Python processing first for true color inversion
     let pythonResult: { success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string } = { 
       success: false, 
-      error: "Python not available in serverless environment" 
+      error: "Python processing not attempted" 
     }
     
-    if (!isServerless) {
-      pythonResult = await processPDFWithPython(pdfBytes, mode)
+    // Try Python processing (both local and serverless)
+    try {
+      if (isServerless) {
+        // Try Vercel Python function
+        pythonResult = await processPDFWithVercelPython(pdfBytes, mode)
+      } else {
+        // Try local Python script
+        pythonResult = await processPDFWithPython(pdfBytes, mode)
+      }
+    } catch (pythonError) {
+      console.warn("Python processing failed:", pythonError)
+      pythonResult = { success: false, error: String(pythonError) }
     }
 
     if (!pythonResult.success) {

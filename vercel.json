@@ -9,6 +9,12 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "builds": [
+    {
+      "src": "pdf_inverter.py",
+      "use": "@vercel/python"
+    }
+  ],
   "headers": [
     {
       "source": "/api/process-pdf",

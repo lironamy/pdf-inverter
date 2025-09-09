@@ -225,7 +225,7 @@ export default function PDFInverterPage() {
           </p>
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
             <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
-              💡 <strong>טיפ:</strong> בדיפלוי האפליקציה עובדת במצב JavaScript עם אלגוריתם משופר!
+              💡 <strong>טיפ:</strong> בדיפלוי האפליקציה מנסה Python תחילה, ואז JavaScript!
             </p>
             <p className="text-xs text-blue-600 dark:text-blue-400 text-center mt-1">
               📏 מגבלת גודל: 15MB (מורחב)
@@ -234,7 +234,7 @@ export default function PDFInverterPage() {
               💡 לקבצים גדולים: נסה לחלק את ה-PDF לדפים נפרדים
             </p>
             <p className="text-xs text-green-600 dark:text-green-400 text-center mt-1">
-              ✨ האלגוריתם JavaScript עכשיו יוצר אפקט כהה יותר אמיתי!
+              ✨ Python זמין בדיפלוי! היפוך צבעים אמיתי!
             </p>
           </div>
         </div>

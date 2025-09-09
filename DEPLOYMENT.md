@@ -26,10 +26,10 @@ This app is optimized for Vercel deployment. Here's what you need to know:
 
 ### How It Works in Production
 
-- **Python Processing**: Not available in serverless (Vercel/Netlify)
-- **JavaScript Processing**: Automatically used as fallback
+- **Python Processing**: Available via Vercel Python functions!
+- **JavaScript Processing**: Used as fallback if Python fails
 - **All Modes Work**: Reading, Printing, and Presentation modes all function
-- **Performance**: Still very fast and effective
+- **Performance**: True color inversion with Python, fast fallback with JavaScript
 
 ### File Size Limits
 
