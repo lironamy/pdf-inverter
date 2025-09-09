@@ -26,10 +26,10 @@ This app is optimized for Vercel deployment. Here's what you need to know:
 
 ### How It Works in Production
 
-- **Python Processing**: Available via Vercel Python functions!
-- **JavaScript Processing**: Used as fallback if Python fails
+- **Python Processing Only**: Uses Vercel Python functions for true color inversion
+- **No Fallback**: Pure Python implementation for best quality
 - **All Modes Work**: Reading, Printing, and Presentation modes all function
-- **Performance**: True color inversion with Python, fast fallback with JavaScript
+- **Performance**: True pixel-level color inversion with Python
 
 ### File Size Limits
 

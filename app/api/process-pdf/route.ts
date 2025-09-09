@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { PDFProcessor } from "@/lib/pdf-processor"
 import { exec } from "child_process"
 import { promisify } from "util"
 import fs from "fs/promises"
@@ -138,76 +137,37 @@ export async function POST(request: NextRequest) {
 
     const pdfBytes = await file.arrayBuffer()
 
-    // Validate PDF before processing
-    const validation = await PDFProcessor.validatePDF(pdfBytes)
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error, code: "INVALID_PDF" }, { status: 400 })
-    }
-
     const startTime = Date.now()
 
-    // Try Python processing first for true color inversion
-    let pythonResult: { success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string } = { 
-      success: false, 
-      error: "Python processing not attempted" 
-    }
+    // Process PDF using Python only
+    let pythonResult: { success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string }
     
-    // Try Python processing (both local and serverless)
     try {
       if (isServerless) {
-        // Try Vercel Python function
+        // Use Vercel Python function
         pythonResult = await processPDFWithVercelPython(pdfBytes, mode)
       } else {
-        // Try local Python script
+        // Use local Python script
         pythonResult = await processPDFWithPython(pdfBytes, mode)
       }
     } catch (pythonError) {
-      console.warn("Python processing failed:", pythonError)
-      pythonResult = { success: false, error: String(pythonError) }
+      console.error("Python processing failed:", pythonError)
+      return NextResponse.json(
+        { error: "Python processing failed", details: String(pythonError), code: "PYTHON_ERROR" },
+        { status: 500 },
+      )
     }
 
     if (!pythonResult.success) {
-      console.warn("Python PDF processing failed, falling back to JavaScript:", pythonResult.error)
-      
-      // Fallback to JavaScript processing
-      const options = PDFProcessor.getPresetOptions(mode as "reading" | "printing" | "presentation")
-      const processor = new PDFProcessor(options)
-      const jsResult = await processor.processPDF(pdfBytes)
-
-      if (!jsResult.success) {
-        console.error("Both Python and JavaScript processing failed")
-        return NextResponse.json(
-          { error: "Failed to process PDF", details: jsResult.errors, code: "PROCESSING_ERROR" },
-          { status: 500 },
-        )
-      }
-
-      const processingTime = Date.now() - startTime
-      console.log(`PDF processing complete (JavaScript fallback). Pages: ${jsResult.pageCount}, Time: ${processingTime}ms`)
-
-      const originalName = file.name.replace(/\.pdf$/i, "")
-      const sanitizedFilename = sanitizeFilename(originalName)
-      const outputFilename = `${sanitizedFilename}_dark_mode.pdf`
-
-      return new NextResponse(jsResult.pdfBytes, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${outputFilename}"`,
-          "Content-Length": jsResult.processedSize.toString(),
-          "X-Original-Filename": sanitizeFilename(file.name),
-          "X-Original-Size": jsResult.originalSize.toString(),
-          "X-Output-Size": jsResult.processedSize.toString(),
-          "X-Pages-Processed": jsResult.pageCount.toString(),
-          "X-Processing-Time": jsResult.processingTime.toString(),
-          "X-Processing-Errors": jsResult.errors?.length.toString() || "0",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-        },
-      })
+      console.error("Python PDF processing failed:", pythonResult.error)
+      return NextResponse.json(
+        { error: "Python processing failed", details: pythonResult.error, code: "PYTHON_ERROR" },
+        { status: 500 },
+      )
     }
 
     const processingTime = Date.now() - startTime
-    const pageCount = pythonResult.pageCount || validation.pageCount || 0
+    const pageCount = pythonResult.pageCount || 0
 
     console.log(`PDF processing complete (Python). Pages: ${pageCount}, Time: ${processingTime}ms`)
 
