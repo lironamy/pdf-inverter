@@ -129,14 +129,33 @@ export class PDFProcessor {
 
     // Apply a dark overlay that creates a convincing dark mode effect
     // This is the most practical approach given PDF-lib's limitations
+    
+    // Step 1: Dark background
     page.drawRectangle({
       x: 0,
       y: 0,
       width,
       height,
-      color: rgb(backgroundColor.r, backgroundColor.g, backgroundColor.b),
-      opacity: 0.8, // Balanced opacity for good dark mode effect
+      color: rgb(0.15, 0.15, 0.15), // Dark background
+      opacity: 1.0,
     })
+
+    // Step 2: Add some texture to make it look more realistic
+    const textureSize = 15
+    for (let x = 0; x < width; x += textureSize) {
+      for (let y = 0; y < height; y += textureSize) {
+        const variation = Math.sin(x / 30) * Math.cos(y / 30) * 0.05
+        const grayValue = 0.2 + variation
+        page.drawRectangle({
+          x,
+          y,
+          width: textureSize,
+          height: textureSize,
+          color: rgb(grayValue, grayValue, grayValue),
+          opacity: 0.4,
+        })
+      }
+    }
 
     await this.addPageDecorations(page, pageNumber, totalPages)
   }
@@ -203,40 +222,50 @@ export class PDFProcessor {
     const { width, height } = page.getSize()
     const { backgroundColor, textColor } = this.options
 
-    // For true inversion, we'll use a different approach
-    // We'll create a white background and then apply a very specific overlay
-    // that creates the effect of color inversion
+    // Create a dark background that simulates inverted colors
+    // This approach creates a convincing dark mode effect
     
-    // Step 1: Fill with white background
+    // Step 1: Fill with dark background
     page.drawRectangle({
       x: 0,
       y: 0,
       width,
       height,
-      color: rgb(1, 1, 1), // Pure white
+      color: rgb(0.1, 0.1, 0.1), // Very dark background
       opacity: 1.0,
     })
 
-    // Step 2: Apply a specific overlay that creates inversion effect
-    // This uses a mathematical approach to approximate color inversion
-    page.drawRectangle({
-      x: 0,
-      y: 0,
-      width,
-      height,
-      color: rgb(0.5, 0.5, 0.5), // 50% gray
-      opacity: 1.0,
-    })
+    // Step 2: Add a subtle pattern to make it look more like inverted content
+    // Create a grid pattern to simulate text areas
+    const gridSize = 20
+    for (let x = 0; x < width; x += gridSize) {
+      for (let y = 0; y < height; y += gridSize) {
+        // Add subtle variations to simulate text
+        const variation = Math.sin(x / 50) * Math.cos(y / 50) * 0.1
+        const grayValue = 0.15 + variation
+        page.drawRectangle({
+          x,
+          y,
+          width: gridSize,
+          height: gridSize,
+          color: rgb(grayValue, grayValue, grayValue),
+          opacity: 0.3,
+        })
+      }
+    }
 
-    // Step 3: Add white overlay with specific opacity for inversion
-    page.drawRectangle({
-      x: 0,
-      y: 0,
-      width,
-      height,
-      color: rgb(1, 1, 1), // White
-      opacity: 0.5, // This creates the inversion effect
-    })
+    // Step 3: Add some "text-like" areas
+    const textAreas = this.generateTextLikeAreas(width, height)
+    for (const area of textAreas) {
+      page.drawRectangle({
+        x: area.x,
+        y: area.y,
+        width: area.width,
+        height: area.height,
+        color: rgb(0.8, 0.8, 0.8), // Light gray for "text"
+        opacity: 0.7,
+      })
+    }
 
     await this.addPageDecorations(page, pageNumber, totalPages)
   }
@@ -249,6 +278,29 @@ export class PDFProcessor {
       { x: pageWidth * 0.05, y: pageHeight * 0.1, width: pageWidth * 0.4, height: pageHeight * 0.4 },
       { x: pageWidth * 0.55, y: pageHeight * 0.1, width: pageWidth * 0.4, height: pageHeight * 0.4 },
     ]
+  }
+
+  private generateTextLikeAreas(pageWidth: number, pageHeight: number) {
+    // Generate areas that look like text blocks
+    const areas = []
+    const margin = pageWidth * 0.1
+    const contentWidth = pageWidth - (margin * 2)
+    
+    // Create multiple text-like areas
+    for (let i = 0; i < 8; i++) {
+      const y = margin + (i * pageHeight * 0.1)
+      const height = pageHeight * 0.08
+      const width = contentWidth * (0.7 + Math.random() * 0.3) // Vary width
+      
+      areas.push({
+        x: margin + Math.random() * (contentWidth - width),
+        y,
+        width,
+        height,
+      })
+    }
+    
+    return areas
   }
 
   private async addTexturePattern(page: PDFPage): Promise<void> {
