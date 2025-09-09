@@ -206,6 +206,11 @@ export default function PDFInverterPage() {
             העלה את מסמכי ה-PDF שלך והמר אותם מיד מרקעים בהירים למצב כהה. מושלם לקריאה
             בסביבות עם תאורה נמוכה או להפחתת עומס על העיניים.
           </p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
+            <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
+              💡 <strong>טיפ:</strong> בדיפלוי האפליקציה עובדת במצב JavaScript (עדיין יעיל מאוד!)
+            </p>
+          </div>
         </div>
 
         {error && (

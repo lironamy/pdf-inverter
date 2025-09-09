@@ -72,6 +72,9 @@ async function processPDFWithPython(
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if we're in a serverless environment
+    const isServerless = process.env.VERCEL || process.env.NETLIFY
+    
     const formData = await request.formData()
     const file = formData.get("pdf") as File
     const mode = (formData.get("mode") as string) || "reading"
@@ -110,8 +113,15 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now()
 
-    // Try Python processing first for true color inversion
-    const pythonResult = await processPDFWithPython(pdfBytes, mode)
+    // Try Python processing first for true color inversion (only if not in serverless)
+    let pythonResult: { success: boolean; outputBuffer?: Buffer; pageCount?: number; error?: string } = { 
+      success: false, 
+      error: "Python not available in serverless environment" 
+    }
+    
+    if (!isServerless) {
+      pythonResult = await processPDFWithPython(pdfBytes, mode)
+    }
 
     if (!pythonResult.success) {
       console.warn("Python PDF processing failed, falling back to JavaScript:", pythonResult.error)
@@ -193,17 +203,43 @@ export async function POST(request: NextRequest) {
       } else if (error.message.includes("timeout")) {
         errorMessage = "Processing timed out. Please try a smaller PDF."
         errorCode = "TIMEOUT_ERROR"
+      } else if (error.message.includes("Request Entity Too Large")) {
+        errorMessage = "File too large. Please try a smaller PDF file."
+        errorCode = "FILE_TOO_LARGE"
       }
     }
 
-    return NextResponse.json(
-      {
-        error: errorMessage,
-        code: errorCode,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    )
+    // Ensure we always return valid JSON
+    try {
+      return NextResponse.json(
+        {
+          error: errorMessage,
+          code: errorCode,
+          timestamp: new Date().toISOString(),
+        },
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        },
+      )
+    } catch (jsonError) {
+      // Fallback response if JSON serialization fails
+      return new NextResponse(
+        JSON.stringify({
+          error: "Internal server error",
+          code: "INTERNAL_ERROR",
+          timestamp: new Date().toISOString(),
+        }),
+        { 
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      )
+    }
   }
 }
 
