@@ -193,7 +193,15 @@ export default function PDFInverterPage() {
             <RotateCcw className="h-4 w-4" />
 מהפך צבעי PDF
           </div>
-          <h1 className="text-4xl font-bold text-foreground text-balance">הפיכת קבצי PDF למצב כהה</h1>
+          <h1 className="text-4xl font-bold text-foreground text-balance">הפיכת PDF למצב כהה</h1>
+          <div className="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 rounded-lg p-4 mb-4 border border-pink-200 dark:border-pink-800">
+            <p className="text-lg text-pink-700 dark:text-pink-300 font-medium text-center">
+              💕 נוצר במיוחד בשבילך, לוטרה שלי 💕
+            </p>
+            <p className="text-sm text-pink-600 dark:text-pink-400 text-center mt-1">
+              עכשיו תוכלי לקרוא בנוחות גם בחושך
+            </p>
+          </div>
           <p className="text-lg text-muted-foreground text-pretty max-w-2xl mx-auto">
             העלה את מסמכי ה-PDF שלך והמר אותם מיד מרקעים בהירים למצב כהה. מושלם לקריאה
             בסביבות עם תאורה נמוכה או להפחתת עומס על העיניים.
